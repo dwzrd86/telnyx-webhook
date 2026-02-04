@@ -44,10 +44,13 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_FOR_OPENCLAW", TELEGRAM_BOT_T
 
 class TelnyxWebhook(BaseModel):
     """Telnyx webhook payload"""
-    from_: str = ""
-    to: str = ""
-    text: str = ""
+    from_: Optional[str] = ""
+    to: Optional[str] = ""
+    text: Optional[str] = ""
     message_timestamp: Optional[str] = None
+
+    class Config:
+        fields = {'from_': 'from'}
 
 
 @app.post("/webhook/sms")
