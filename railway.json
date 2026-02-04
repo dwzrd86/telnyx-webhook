@@ -1,20 +1,11 @@
 {
-  "$schema": "https://railway.com/railway.schema.json",
+  "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "builder": "SHELL",
-    "shell": {
-      "script": "pip install -r requirements.txt"
-    }
+    "builder": "NIXPACKS"
   },
   "deploy": {
-    "start": "bash start.sh",
-    "healthcheck": "/health",
-    "restartPolicy": "ON_FAILURE"
-  },
-  "variables": {
-    "PORT": "8080",
-    "TELEGRAM_BOT_TOKEN": "",
-    "TELEGRAM_CHAT_ID": "",
-    "MIZZLE_ENDPOINT": ""
+    "startCommand": "python3 telnyx-webhook/app.py",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 5
   }
 }
