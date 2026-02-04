@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Telnyx SMS Webhook Handler
-Receives incoming SMS and forwards to Mizzle
+Receives incoming SMS and forwards to Mizzle via Telegram
 """
 
 import os
@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import logging
+import json
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,10 +22,24 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Load environment variables from secrets
+def load_secrets():
+    secrets_dir = os.getenv("SECRETS_DIR", "/home/dee/.openclaw/workspace/.secrets")
+    telnyx_file = os.path.join(secrets_dir, "telnyx.env")
+    
+    if os.path.exists(telnyx_file):
+        with open(telnyx_file) as f:
+            for line in f:
+                if '=' in line and not line.startswith('#'):
+                    key, val = line.strip().split('=', 1)
+                    os.environ.setdefault(key, val)
+
+load_secrets()
+
 # Configuration
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
-MIZZLE_ENDPOINT = os.getenv("MIZZLE_ENDPOINT", "http://localhost:8080")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "1198007250")  # Darius's Telegram ID
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN_FOR_OPENCLAW", TELEGRAM_BOT_TOKEN)
 
 
 class TelnyxWebhook(BaseModel):
@@ -60,19 +75,6 @@ async def receive_sms(request: Request):
                         "chat_id": TELEGRAM_CHAT_ID,
                         "text": message,
                         "parse_mode": "Markdown"
-                    }
-                )
-        
-        # Forward to Mizzle endpoint
-        if MIZZLE_ENDPOINT:
-            async with httpx.AsyncClient() as client:
-                await client.post(
-                    f"{MIZZLE_ENDPOINT}/sms/received",
-                    json={
-                        "from": from_num,
-                        "to": to_num,
-                        "text": text,
-                        "timestamp": timestamp
                     }
                 )
         
